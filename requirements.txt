@@ -1,0 +1,11 @@
+streamlit
+langchain
+langchain-community
+langgraph
+transformers
+huggingface_hub
+sentence-transformers
+torch
+torchvision
+torchaudio
+python-dotenv
