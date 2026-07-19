@@ -36,6 +36,7 @@ if UserInput:
         st.text(UserInput)
         
     response = workflow.invoke({"input": [HumanMessage(content=UserInput)]})
+    st.write(response)
     AIMessage = response["messages"][-1].content
     
     with st.chat_message("Assistant"): #ICON
