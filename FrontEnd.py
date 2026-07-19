@@ -35,9 +35,8 @@ if UserInput:
     with st.chat_message("User"):
         st.text(UserInput)
         
-    response = workflow.invoke({"input": [HumanMessage(content=UserInput)]})
-    st.write(response)
-    AIMessage = response["messages"][-1].content
+    response = workflow.invoke({"message":[HumanMessage(content=UserInput)]},config=config)
+    AIMessage = response['message'][-1].content
     
     with st.chat_message("Assistant"): #ICON
         #Adding History in UI
