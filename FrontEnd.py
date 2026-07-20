@@ -34,14 +34,24 @@ if UserInput:
     
     with st.chat_message("User"):
         st.text(UserInput)
-        
-    response = workflow.invoke({"message":[HumanMessage(content=UserInput)]},config=config)
-    AIMessage = response['message'][-1].content
+        #Old COde Without Streaming
+    # response = workflow.invoke({"message":[HumanMessage(content=UserInput)]},config=config)
+    # AIMessage = response['message'][-1].content
     
     with st.chat_message("Assistant"): #ICON
+        #Streaming Inplementation
+        AIMessage = st.write_stream(
+            message_chunk.content for message_chunk ,metadata in workflow.stream(
+                {"message":[HumanMessage(content=UserInput)]},
+                config=config,
+                stream_mode="messages"
+            )
+        )
+    
+    
         #Adding History in UI
-        st.session_state['messageHistory'].append({"Role":"Assistant","Content":AIMessage})
-        st.success(AIMessage)
+    st.session_state['messageHistory'].append({"Role":"Assistant","Content":AIMessage})
+    # st.success(AIMessage)
 
 if st.button("Clear Chat"):
     st.session_state["messageHistory"] = []
