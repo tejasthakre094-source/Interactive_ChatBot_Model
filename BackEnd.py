@@ -9,7 +9,7 @@ from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
 import os
 load_dotenv()
 llm = HuggingFaceEndpoint(
-    repo_id="Qwen/Qwen2.5-7B-Instruct",
+    repo_id="zai-org/GLM-5.2",
     task="text-generation"
 )
 ChatModel = ChatHuggingFace(llm=llm)

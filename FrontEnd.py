@@ -1,30 +1,88 @@
 import streamlit as st
 from BackEnd import workflow
 from langchain_core.messages import HumanMessage
+import uuid
 
-
+#**********************************************************MAin UI************************************************************
 st.title("CHAT BOT")
 st.subheader("You Can Ask Any Question Here...")
 
+# *****************************************************Utility Functions*******************************************************
+#Dynamic Thread ID generation
+def GenerateThreadId():
+    thread_id = uuid.uuid4()
+    return thread_id 
+
+def ResetChat():
+    thread_id= GenerateThreadId()
+    st.session_state['thread_id'] = thread_id
+    Add_threadID(st.session_state['thread_id'])
+    st.session_state['messageHistory'] = []
 
 
+def Add_threadID(thread_id):
+    if thread_id not in st.session_state['chat_threads']:
+        st.session_state['chat_threads'].append(thread_id)
 
-#SessionState
+
+def load_conversation_history(thread_id):
+    return workflow.get_state(config= {"configurable" : {'thread_id' :thread_id}} ).values['message']
+
+
+#********************************************************Session State Setup*********************************************************
 if 'messageHistory' not in st.session_state:
     st.session_state['messageHistory'] = []
 
-#Loading History
+
+if 'thread_id' not in st.session_state:
+    st.session_state['thread_id'] = GenerateThreadId()
+
+
+if 'chat_threads' not in st.session_state:
+    st.session_state['chat_threads'] = []
+    
+Add_threadID(st.session_state['thread_id'])
+
+#********************************************************SideBar UI**************************************************
+st.sidebar.title("Chat History")
+
+if st.sidebar.button("New Chat"):
+    ResetChat()
+    
+st.sidebar.header("My Conversations :")
+
+
+#*******************************************************OnClick History Loading**********************************************
+
+for thread_id in st.session_state['chat_threads'][::-1]:
+    if st.sidebar.button(str(thread_id)):
+        st.session_state['thread_id']=thread_id
+        message = load_conversation_history(thread_id)
+        
+        temp_msg =[]
+        
+        for m in message:
+            if isinstance(m ,HumanMessage):
+                Role = "User"
+            else:
+                Role="Assistant"
+            temp_msg.append({"Role":Role,"Content":m.content})
+            #{"Role":"_____","Content":______}
+            
+        st.session_state['messageHistory'] =temp_msg
+
+
+#*******************************************************Loading History***********************************************
 for message in st.session_state['messageHistory']:
     with st.chat_message(message["Role"]):
         st.text(message["Content"])
-        
-        
 #{"Role":"_____","Content":______}
 
-thread_id = "1"
-config = {"configurable":{"thread_id":thread_id}}
+
+config = {"configurable":{"thread_id":st.session_state['thread_id']}} #Thread_id added
 
 
+#******************************************************User Input******************************************************
 
 UserInput = st.chat_input("Type Here..") 
 
@@ -34,7 +92,7 @@ if UserInput:
     
     with st.chat_message("User"):
         st.text(UserInput)
-        #Old COde Without Streaming
+    #Old COde Without Streaming
     # response = workflow.invoke({"message":[HumanMessage(content=UserInput)]},config=config)
     # AIMessage = response['message'][-1].content
     
@@ -47,13 +105,9 @@ if UserInput:
                 stream_mode="messages"
             )
         )
-    
-    
-        #Adding History in UI
+    #Adding History in UI
     st.session_state['messageHistory'].append({"Role":"Assistant","Content":AIMessage})
     # st.success(AIMessage)
 
-if st.button("Clear Chat"):
-    st.session_state["messageHistory"] = []
 
 
